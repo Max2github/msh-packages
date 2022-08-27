@@ -1,0 +1,8 @@
+main : add-list            : src/main/list.c
+main : remove-list         : -
+main : modify-list         : -
+main : print-list          : -
+main : delete-list         : -
+main : print-list-SPEICHER : -
+sub : toString-list : src/sub/list.c
+sub : len-list      : -

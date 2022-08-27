@@ -1,0 +1,7 @@
+main : display : src/main/essential.c
+main : print   : -
+main : stop    : -
+main : call    : -
+main : goto    : -
+sub : input    : src/sub/essential.c
+sub : math     : -
