@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../../mshgit/include/alg.h"
-#include "../../../mshgit/dependencies/words.h"
-#include "../../../mshgit/include/msh.h"
-#include "../../../mshgit/dependencies/std.h"
+#include "../../../../mshgit/include/alg.h"
+#include "../../../../mshgit/dependencies/words.h"
+#include "../../../../mshgit/include/msh.h"
+#include "../../../../mshgit/dependencies/std.h"
 // #include "../../../include/alg.h"
 // #include "../../../dependencies/words.h"
 // #include "../../../include/msh.h"
@@ -23,9 +23,10 @@ typedef thread_list_el * thread_list;
 thread_list MSH_ASYNC_THREADS = NULL;
 
 int msh_async_addThread() {
-    thread_list newHead = (thread_list) malloc(sizeof(thread_list_el));
+    thread_list newHead = (thread_list) MSH_MALLOC(sizeof(thread_list_el));
     newHead->next = MSH_ASYNC_THREADS;
     MSH_ASYNC_THREADS = newHead;
+    return 0;
 }
 
 thread_list_el_pointer msh_async_getThread(int index) {

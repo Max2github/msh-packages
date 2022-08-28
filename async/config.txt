@@ -1,2 +1,2 @@
-main : async : src/async.c
-sub : await : src/await.c
+main : async : src/main/async.c
+sub : await : src/sub/await.c

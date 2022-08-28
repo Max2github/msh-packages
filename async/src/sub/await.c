@@ -1,8 +1,10 @@
 #include <pthread.h>
-#include <stdlib.h>
 
-#include "../../../mshgit/include/alg.h"
+
+#include "../../../../mshgit/include/alg.h"
+#include "../../../../mshgit/dependencies/std.h"
 // #include "../../../include/alg.h"
+// #include "../../../dependencies/std.h"
 
 struct thread_list_el {
     pthread_t thread;
