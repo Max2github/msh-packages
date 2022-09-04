@@ -1,12 +1,12 @@
-/* #include "../../../include/alg.h"
+/* #include "../../../dependencies/std.h"
+#include "../../../include/alg.h"
 #include "../../../include/msh.h"
-#include "../../../dependencies/words.h"
-#include "../../../dependencies/std.h" */
+#include "../../../dependencies/words.h" */
 
+#include "../../../../mshgit/dependencies/std.h"
 #include "../../../../mshgit/include/alg.h"
 #include "../../../../mshgit/include/msh.h"
 #include "../../../../mshgit/dependencies/words.h"
-#include "../../../../mshgit/dependencies/std.h"
 
 void msh_command_main_display() {
     if (find(msh_Wert, "&/arr//") != 0) {

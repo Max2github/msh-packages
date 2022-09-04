@@ -2,14 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../../../mshgit/dependencies/std.h"
 #include "../../../../mshgit/include/alg.h"
 #include "../../../../mshgit/dependencies/words.h"
 #include "../../../../mshgit/include/msh.h"
-#include "../../../../mshgit/dependencies/std.h"
+// #include "../../../dependencies/std.h"
 // #include "../../../include/alg.h"
 // #include "../../../dependencies/words.h"
 // #include "../../../include/msh.h"
-// #include "../../../dependencies/std.h"
 
 struct thread_list_el {
     pthread_t thread;
@@ -23,6 +23,15 @@ typedef thread_list_el * thread_list;
 
 thread_list MSH_ASYNC_THREADS = NULL;
 int MSH_ASYNC_MAX_ID = -1;
+
+void msh_asysnc_on_exit() {
+    while (MSH_ASYNC_THREADS != NULL) {
+        pthread_join(MSH_ASYNC_THREADS->thread, NULL);
+        thread_list_el_pointer toDel = MSH_ASYNC_THREADS;
+        MSH_ASYNC_THREADS = MSH_ASYNC_THREADS->next;
+        MSH_FREE(toDel);
+    }
+}
 
 int msh_async_getThreadNum() {
     thread_list temp = MSH_ASYNC_THREADS;
@@ -65,6 +74,20 @@ int msh_async_addThread() {
     return MSH_ASYNC_THREADS->id;
 }
 
+int msh_async_removeThread(int id) {
+    thread_list temp = MSH_ASYNC_THREADS;
+    thread_list beforeTemp = NULL;
+    while (temp != NULL) {
+        if (temp->id == id) {
+            if (beforeTemp == NULL) { MSH_ASYNC_THREADS = temp->next; }
+            else { beforeTemp->next = temp->next; }
+            MSH_FREE(temp);
+        }
+        beforeTemp = temp;
+        temp = temp->next;
+    }
+}
+
 thread_list_el_pointer msh_async_getThread(int ID) {
     int i = 0;
     thread_list_el_pointer temp = MSH_ASYNC_THREADS;
@@ -87,6 +110,9 @@ void msh_async_func_call(void * arg) {
 // async() <sep> IN <func> <sep> <callback func>
 // async() <func>
 void msh_command_main_async() {
+    if (MSH_ASYNC_THREADS == NULL) {
+        msh_add_on_exit(msh_asysnc_on_exit);
+    }
     if (find(msh_Wert, "IN")) {
         // handle IN
     } else {

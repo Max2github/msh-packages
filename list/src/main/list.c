@@ -6,10 +6,10 @@
 
 #include "../../cparts/command_def.h" */
 
+#include "../../../../mshgit/dependencies/std.h"
 #include "../../../../mshgit/include/alg.h"
 #include "../../../../mshgit/dependencies/mathe.h"
 #include "../../../../mshgit/dependencies/words.h"
-#include "../../../../mshgit/dependencies/std.h"
 #include "../../../../mshgit/include/list.h"
 
 #include "../../../../mshgit/src/cparts/command_def.h"

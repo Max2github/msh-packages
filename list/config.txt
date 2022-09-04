@@ -5,4 +5,5 @@ main : print-list          : -
 main : delete-list         : -
 main : print-list-SPEICHER : -
 sub : toString-list : src/sub/list.c
+sub : getFirst-list : -
 sub : len-list      : -
