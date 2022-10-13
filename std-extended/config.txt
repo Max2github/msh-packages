@@ -1,4 +1,4 @@
-sub : array    : sub/std++.c
+sub : array    : src/sub/std+.c
 sub : object   : -
 sub : random   : -
 sub : randomin : - 

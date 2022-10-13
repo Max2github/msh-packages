@@ -1,4 +1,4 @@
-# Asysnc package (BETA)
+# Asysnc package (BETA, UNIX)
 This packages enables multi-threading in msh. The stage is rather BETA and there may still be BUGS.
 This package uses the pthread.h library, which may not exist everywhere and cause errors when cross-compiling.
 If you want to use this package please set "MULTI_THREAD" in mshgit in "dependencies/std.h" to "1".
