@@ -12,8 +12,8 @@
 
 #include "../../../../mshgit/src/cparts/command_def.h"
 
-void msh_command_sub_input() {
-    msh_command_main_print(); // will print msh_Wert
+void msh_command_sub_input(msh_info * msh) {
+    msh_command_main_print(msh); // will print msh_Wert
     // scanf(" %s", msh_Wert);
     // fgets(msh_Wert, VAR_MAXCHAR-1, stdin); // this could cause problems
     // char * temp; size_t len = 0;
@@ -25,7 +25,7 @@ void msh_command_sub_input() {
     replaceS(msh_Wert, "\n", "");
     replaceS(msh_Wert, "=", "&/equals//");
 };
-void msh_command_sub_math() {
+void msh_command_sub_math(msh_info * msh) {
     double erg = rechnen(msh_Wert);
     // Kommastellen mit 0 am Ende entfernen
     char newWert[VAR_MAXCHAR];
