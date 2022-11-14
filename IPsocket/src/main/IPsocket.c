@@ -5,12 +5,13 @@
 #include "../../../../mshgit/include/alg.h"
 #include "../../../../mshgit/dependencies/words.h"
 
-void msh_command_main_send_IPsocket() {
+void msh_command_main_send_IPsocket(msh_info * msh) {
     // parse arguments
-    if (!find(msh_Wert, "TO")) { msh_error("separator \"TO\" is missing."); return; }
+    const char * wert = get_msh_Wert(msh);
+    if (!find(wert, "TO")) { msh_error(msh, "separator \"TO\" is missing."); return; }
     char ** arguments;
-    int argCount = split(msh_Wert, "TO", &arguments);
-    if (argCount > 2) { return msh_error("send-IPsocket - write \"TO\" only once!"); }
+    int argCount = split(wert, "TO", &arguments);
+    if (argCount > 2) { return msh_error(msh, "send-IPsocket - write \"TO\" only once!"); }
 
     int clientSocket = MSH_STRING_TO_INT(arguments[1]);
     char * data = arguments[0];
@@ -21,8 +22,8 @@ void msh_command_main_send_IPsocket() {
     freeWordArr(arguments, argCount);
 }
 
-void msh_command_main_close_IPsocket() {
-    int socket = MSH_STRING_TO_INT(msh_Wert);
+void msh_command_main_close_IPsocket(msh_info * msh) {
+    int socket = MSH_STRING_TO_INT(get_msh_Wert(msh));
 
     close(socket);
     shutdown(socket, SHUT_RDWR);

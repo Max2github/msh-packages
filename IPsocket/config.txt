@@ -1,5 +1,6 @@
 sub : listen-IPsocket : src/sub/IPsocket.c
 sub : accept-IPsocket : -
+sub : connect-IPsocket : -
 sub : receive-IPsocket : -
 main : send-IPsocket : src/main/IPsocket.c
 main : close-IPsocket : -

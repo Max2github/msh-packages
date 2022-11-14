@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.phpSeg": "php",
+        "*.make": "makefile",
+        "*.c": "c",
+        "*.asm": "asm-intel-x86-generic",
+        "*.odt": "odt",
+        "*.json": "json",
+        "command_def.h": "c"
+    }
+}
