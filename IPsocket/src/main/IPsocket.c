@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 
 #include "../../../../mshgit/include/alg.h"
-#include "../../../../mshgit/dependencies/words.h"
+#include "../../../../mshgit/dependencies/extern.h"
 
 void msh_command_main_send_IPsocket(msh_info * msh) {
     // parse arguments

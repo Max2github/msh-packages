@@ -3,7 +3,7 @@
  #include <arpa/inet.h>
 
 #include "../../../../mshgit/include/alg.h"
-#include "../../../../mshgit/dependencies/words.h"
+#include "../../../../mshgit/dependencies/extern.h"
 
 typedef int socket_t;
 
