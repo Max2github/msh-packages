@@ -4,7 +4,11 @@
 #include "../../../../mshgit/dependencies/extern.h"
 
 // this will include all other commands in this package
-#include "../../../../mshgit/src/cparts/command_def.h"
+// #include "../../../../mshgit/src/cparts/command_def.h"
+
+// define msh_command_main_print,
+// because the warning from intellisense is bothering me
+void msh_command_main_print(msh_info *);
 
 void msh_command_sub_input(msh_info * msh) {
     char * wert = get_msh_Wert(msh);
