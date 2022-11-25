@@ -1,20 +1,24 @@
+#include <unistd.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "../../../../mshgit/dependencies/std.h"
 #include "../../../../mshgit/include/alg.h"
-#include "../../../../mshgit/dependencies/words.h"
 #include "../../../../mshgit/include/msh.h"
-// #include "../../../dependencies/std.h"
-// #include "../../../include/alg.h"
-// #include "../../../dependencies/words.h"
-// #include "../../../include/msh.h"
+#include "../../../../mshgit/dependencies/extern.h"
+
+struct msh_async_thread_interface {
+    superstring msh_arg;
+    unsigned int id;
+    msh_info * msh;
+};
+typedef struct msh_async_thread_interface msh_async_thread_interface;
+typedef msh_async_thread_interface * msh_async_thread_interface_pointer;
 
 struct thread_list_el {
     pthread_t thread;
-    superstring thread_arg;
-    int id;
+    msh_async_thread_interface interface;
     struct thread_list_el * next;
 };
 typedef struct thread_list_el thread_list_el;
@@ -54,7 +58,7 @@ int msh_async_getFreeId() {
     int allFound[MSH_ASYNC_MAX_ID+1];
     for (int i = 0; i <= MSH_ASYNC_MAX_ID; i++) { allFound[i] = 0; } // init all with "not found"
     while (temp != NULL) {
-        allFound[temp->id] = 1; // this ID was found
+        allFound[temp->interface.id] = 1; // this ID was found
         temp = temp->next;
     }
     printIntArr(allFound, MSH_ASYNC_MAX_ID+1);
@@ -69,16 +73,16 @@ int msh_async_getFreeId() {
 int msh_async_addThread() {
     thread_list newHead = (thread_list) MSH_MALLOC(sizeof(thread_list_el));
     newHead->next = MSH_ASYNC_THREADS;
-    newHead->id = msh_async_getFreeId();
+    newHead->interface.id = msh_async_getFreeId();
     MSH_ASYNC_THREADS = newHead;
-    return MSH_ASYNC_THREADS->id;
+    return MSH_ASYNC_THREADS->interface.id;
 }
 
-int msh_async_removeThread(int id) {
+void msh_async_removeThread(int id) {
     thread_list temp = MSH_ASYNC_THREADS;
     thread_list beforeTemp = NULL;
     while (temp != NULL) {
-        if (temp->id == id) {
+        if (temp->interface.id == id) {
             if (beforeTemp == NULL) { MSH_ASYNC_THREADS = temp->next; }
             else { beforeTemp->next = temp->next; }
             MSH_FREE(temp);
@@ -92,36 +96,45 @@ thread_list_el_pointer msh_async_getThread(int ID) {
     int i = 0;
     thread_list_el_pointer temp = MSH_ASYNC_THREADS;
     while (temp != NULL) {
-        if (temp->id == ID) { return temp; }
+        if (temp->interface.id == ID) { return temp; }
         temp = temp->next;
     }
     return NULL;
 }
 
 void msh_async_func_call(void * arg) {
-    superstring wert = (superstring) arg;
-    char wertStr[s_len(wert)+1];
-    s_stringify(wert, wertStr);
-    s_free(wert);
-    msh_func_call(wertStr);
+    msh_async_thread_interface_pointer interface = (msh_async_thread_interface_pointer) arg;
+
+    char wertStr[s_len(interface->msh_arg)+1];
+    s_stringify(interface->msh_arg, wertStr);
+    s_free(interface->msh_arg);
+
+    msh_info thread_info = MSH_INFO_DEFAULT;
+
+    char name[20] = "thread ";
+    intToString(interface->id, name + word_len(name));
+    msh_func_deph_add_func(&thread_info, name);
+
+    msh_func_call(&thread_info, wertStr);
 }
 
 // format
 // async() <sep> IN <func> <sep> <callback func>
 // async() <func>
-void msh_command_main_async() {
+void msh_command_main_async(msh_info * msh) {
     if (MSH_ASYNC_THREADS == NULL) {
-        msh_add_on_exit(msh_asysnc_on_exit);
+        msh_add_on_exit(msh, msh_asysnc_on_exit);
     }
     if (find(msh_Wert, "IN")) {
         // handle IN
     } else {
         thread_list_el_pointer t = msh_async_getThread(msh_async_addThread());
-        t->thread_arg = s_init(msh_Wert);
-        /* int rc = */ pthread_create(&t->thread, NULL, (void *) &msh_async_func_call, (void *) t->thread_arg);
+        t->interface.msh_arg = s_init(msh_Wert);
+        t->interface.msh = msh;
+        /* int rc = */ pthread_create(&t->thread, NULL, (void *) &msh_async_func_call, (void *) &t->interface);
         // word_copy(msh_Wert, "0");
-        char ID[intLen(t->id)+1];
-        intToString(t->id, ID);
-        set_msh_Wert(ID);
+        char ID[intLen(t->interface.id)+1];
+        intToString(t->interface.id, ID);
+        set_msh_Wert(msh, ID);
     }
 }
