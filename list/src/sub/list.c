@@ -6,19 +6,21 @@
 #include "../../cparts/command_def.h" */
 
 #include "../../../../mshgit/dependencies/std.h"
+
 #include "../../../../mshgit/include/alg.h"
-#include "../../../../mshgit/dependencies/words.h"
 #include "../../../../mshgit/include/list.h"
+
+#include "../../../../mshgit/dependencies/extern.h"
 
 #include "../../../../mshgit/src/cparts/command_def.h"
 
-void msh_command_sub_toString_list() {
+void msh_command_sub_toString_list(msh_info * msh) {
     char ** wordArr;
     int Teile = split((const char *) msh_Wert, "IN", &wordArr);
     if (Teile == 0) { freeWordArr(wordArr, Teile); }
     else {
         // word_copy(msh_Wert, wordArr[Teile]);
-        set_msh_Wert(wordArr[Teile]);
+        set_msh_Wert(msh, wordArr[Teile]);
     }
 
     list List = msh_getListByName(msh_Wert);
@@ -37,7 +39,7 @@ void msh_command_sub_toString_list() {
         freeWordArr(wordArr, Teile);
     }
 }
-void msh_command_sub_getFirst_list() {
+void msh_command_sub_getFirst_list(msh_info * msh) {
     char ** wordArr;
     int Teile = split(msh_Wert, ":", &wordArr);
     if (Teile != 2) {
@@ -51,7 +53,7 @@ void msh_command_sub_getFirst_list() {
     if (toMod == NULL) {
         // printf("Error: List \"%s\" not found!\n", name);
         // word_copy(msh_Wert, "NULL");
-        set_msh_Wert("NULL");
+        set_msh_Wert(msh, "NULL");
         freeWordArr(wordArr, Teile);
         return;
     }
@@ -60,7 +62,7 @@ void msh_command_sub_getFirst_list() {
         int index = atoi(value);
         if (index >= list_node_len(toMod)) {
             // word_copy(msh_Wert, "NULL");
-            set_msh_Wert("NULL");
+            set_msh_Wert(msh, "NULL");
             freeWordArr(wordArr, Teile);
             return;
         }
@@ -71,12 +73,12 @@ void msh_command_sub_getFirst_list() {
     } else if (word_compare(type, "Type&Value") == 0) {
         
     } else {
-        msh_error("");
+        msh_error(msh, "");
         printf("Option \"%s\" not found! Please only enter \"Index\", \"Type\" or \"Type&Value\".\n", type);
     }
     freeWordArr(wordArr, Teile);
 }
-void msh_command_sub_len_list() {
+void msh_command_sub_len_list(msh_info * msh) {
     // sprintf(msh_Wert, "%d", list_node_len(msh_getListByName(msh_Wert)));
     intToString(list_node_len(msh_getListByName(msh_Wert)), msh_Wert);
 }

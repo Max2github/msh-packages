@@ -7,14 +7,17 @@
 #include "../../cparts/command_def.h" */
 
 #include "../../../../mshgit/dependencies/std.h"
+
 #include "../../../../mshgit/include/alg.h"
-#include "../../../../mshgit/dependencies/mathe.h"
-#include "../../../../mshgit/dependencies/words.h"
 #include "../../../../mshgit/include/list.h"
 
-#include "../../../../mshgit/src/cparts/command_def.h"
+#include "../../../../mshgit/dependencies/extern.h"
 
-void msh_command_main_add_list() {
+// #include "../../../../mshgit/src/cparts/command_def.h"
+
+void msh_command_main_delete_list(msh_info * msh);
+
+void msh_command_main_add_list(msh_info * msh) {
     char ** wordArr;
     int Teile = split(msh_Wert, ":", &wordArr);
     if (Teile != 3) {
@@ -52,17 +55,17 @@ void msh_command_main_add_list() {
         list toModBoss = msh_getListBossByName(name);
 
         if (word_compare(type, "Char") == 0) {
-            toModBoss->el = list_addFirst( (list) toModBoss->el, Char, *value, End);
+            toModBoss->el = (unsigned long long) list_addFirst( (list) toModBoss->el, Char, *value, End);
         } else if (word_compare(type, "Integer") == 0) {
-            toModBoss->el = list_addFirst( (list)toModBoss->el, Integer, atoi(value), End);
+            toModBoss->el = (unsigned long long) list_addFirst( (list)toModBoss->el, Integer, atoi(value), End);
         } else if (word_compare(type, "Float") == 0) {
-            toModBoss->el = list_addFirst( (list)toModBoss->el, Float, atof(value), End);
+            toModBoss->el = (unsigned long long) list_addFirst( (list)toModBoss->el, Float, atof(value), End);
         } else if (word_compare(type, "Double") == 0) {
-            toModBoss->el = list_addFirst( (list)toModBoss->el, Double, atof(value), End);
+            toModBoss->el = (unsigned long long) list_addFirst( (list)toModBoss->el, Double, atof(value), End);
         } else if (word_compare(type, "String") == 0) {
-            toModBoss->el = list_addFirst( (list)toModBoss->el, String, value, End);
+            toModBoss->el = (unsigned long long) list_addFirst( (list)toModBoss->el, String, value, End);
         } else if (word_compare(type, "List") == 0) {
-            toModBoss->el = list_addFirst( (list) toModBoss->el, List, msh_getListByName(value), End);
+            toModBoss->el = (unsigned long long) list_addFirst( (list) toModBoss->el, List, msh_getListByName(value), End);
         }
     } else {
         if (word_compare(type, "Char") == 0) {
@@ -82,7 +85,7 @@ void msh_command_main_add_list() {
 
     freeWordArr(wordArr, Teile);
 }
-void msh_command_main_remove_list() {
+void msh_command_main_remove_list(msh_info * msh) {
     char ** wordArr;
     int Teile = split(msh_Wert, ":", &wordArr);
     if (Teile != 2) {
@@ -94,7 +97,7 @@ void msh_command_main_remove_list() {
     char * value = wordArr[2];
     list toMod = msh_getListByName(name);
     if (toMod == NULL) {
-        msh_error("");
+        msh_error(msh, "");
         printf("List \"%s\" not found!\n", name);
         freeWordArr(wordArr, Teile);
         return;
@@ -107,14 +110,14 @@ void msh_command_main_remove_list() {
         if (index == 0) {
             if (list_node_len(toMod) == 1) {
                 // word_copy(msh_Wert, name);
-                set_msh_Wert(name);
-                msh_command_main_delete_list();
+                set_msh_Wert(msh, name);
+                msh_command_main_delete_list(msh);
                 freeWordArr(wordArr, Teile);
                 return;
             }
             list wholeNode = msh_getNodeByName(name);
             toMod = list_removeFirst(toMod);
-            ((list) wholeNode->el)->el = toMod;
+            ((list) wholeNode->el)->el = (unsigned long long) toMod;
         } else {
             if (list_node_len(toMod) > index) {
                 list_removeIndex(toMod, index);
@@ -168,14 +171,14 @@ void msh_command_main_modify_list() {
     }
     switch (toMod->type) {
         case String: {
-            char newValue[word_len(toMod->el) + word_len(value)];
+            char newValue[word_len((const char *) toMod->el) + word_len(value)];
             word_copy(newValue, value);
-            replaceS(newValue, "Same", toMod->el);
-            toMod->el = realloc(toMod->el, sizeof(char) * (word_len(newValue) + 1));
-            word_copy(toMod->el, newValue);
+            replaceS(newValue, "Same", (const char *) toMod->el);
+            toMod->el = (unsigned long long) realloc((void *) toMod->el, sizeof(char) * (word_len(newValue) + 1));
+            word_copy((char *) toMod->el, newValue);
             break;
         }
-        case Char: { toMod->el = value; break; }
+        case Char: { toMod->el = (unsigned long long) value; break; }
         case Integer: {
             int * val = (int *) toMod->el;
             int len = intLen(*val) + 1;
@@ -222,12 +225,12 @@ void msh_command_main_modify_list() {
 void msh_command_main_print_list() {
     list_print(msh_getListByName(msh_Wert), 0);
 }
-void msh_command_main_delete_list() {
+void msh_command_main_delete_list(msh_info * msh) {
     if (LIST_SPEICHER == NULL) {
-        msh_error("Error: There are no lists!\n");
+        msh_error(msh, "Error: There are no lists!\n");
         return;
     }
-    if ( word_compare( ((list) LIST_SPEICHER->el)->next->el , msh_Wert) == 0 ) {
+    if ( word_compare((const char *) ((list) LIST_SPEICHER->el)->next->el , msh_Wert) == 0 ) {
         list after = LIST_SPEICHER->next;
         list_element_free(LIST_SPEICHER);
         LIST_SPEICHER = after;
@@ -243,9 +246,9 @@ void msh_command_main_delete_list() {
         before->next = after;
     }
 }
-void msh_command_main_print_list_SPEICHER() {
+void msh_command_main_print_list_SPEICHER(msh_info * msh) {
     if (LIST_SPEICHER == NULL) {
-        msh_error("There are no lists!\n");
+        msh_error(msh, "There are no lists!\n");
         return;
     }
     while (LIST_SPEICHER != NULL) {
