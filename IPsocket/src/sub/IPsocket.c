@@ -97,7 +97,8 @@ void msh_command_sub_receive_IPsocket(msh_info * msh) {
     socket_t clientSocket = MSH_STRING_TO_INT(get_msh_Wert(msh));  // get parameter clientSocket
 
     char * buf = malloc(VAR_MAXCHAR);
-    recv(clientSocket, buf, VAR_MAXCHAR, 0);
+    ssize_t size = recv(clientSocket, buf, VAR_MAXCHAR - 1, 0);
+    buf[size] = '\0';
     set_msh_Wert(msh, buf);
     free(buf);
 }
