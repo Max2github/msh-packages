@@ -14,6 +14,9 @@ typedef MSH_SOCKET socket_t;
 #define MSH_IPSOCKET_IPV4 AF_INET
 #define MSH_IPSOCKET_IPV6 AF_INET6
 
+// max: 255.255.255.255
+#define MSH_IPSOCKET_IPV4_STRING_MAXLEN 15
+
 socket_t msh_IPsocket_socket_create() {
     // return socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
     return msh_socket_create(MSH_SOCKET_IPV4, MSH_SOCKET_TCP_SOCKET, MSH_SOCKET_PROTOCOLL_IP);
@@ -31,9 +34,14 @@ struct sockaddr_in msh_IPsocket_addr_in_create(unsigned int address, unsigned sh
     return addr;
 }
 
-void msh_IPsocket_addr_in_setAddr(const char* address, struct sockaddr_in* addr) {
+void msh_IPsocket_addr_in_setAddr(msh_info * msh, char * address, struct sockaddr_in * addr) {
+    #if OS_WINDOWS && CC_MINGW
+        if (word_compare(address, "localhost") == 0) {
+            word_copy(address, "127.0.0.1");
+        }
+    #endif
     if (inet_pton(AF_INET, address, &addr->sin_addr) <= 0) {
-        // msh_error()
+        msh_error(msh, "Address is incorrect!");
     }
 }
 
@@ -50,9 +58,9 @@ void msh_command_sub_listen_IPsocket(msh_info* msh) {
     struct sockaddr_in servAddr = msh_IPsocket_addr_in_create(INADDR_ANY, port);
 
     // set options
-    int opt = 1;
+    const int opt = 1;
     // reuse addr, should eliminate problems with address already in use
-    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (const void *) &opt, sizeof(opt)) < 0) {
         return msh_error(msh, "internal: listen-IPsocket - serverSocket - setsockopt() - SO_REUSEADDR failed");
     }
     // reuse port, should eliminate problems with port already in use
@@ -83,15 +91,18 @@ void msh_command_sub_accept_IPsocket(msh_info* msh) {
 
 void msh_command_sub_connect_IPsocket(msh_info* msh) {
     const char* all = get_msh_Wert(msh);
-    char address[word_len_until(all, ":") + 1];
+    index32 address_len = word_len_until(all, ":");
+    address_len = (MSH_IPSOCKET_IPV4_STRING_MAXLEN >= address_len) ? MSH_IPSOCKET_IPV4_STRING_MAXLEN+1 : address_len;
+    char address[address_len];
     const char* portStr = word_copy_until(address, all, ":");
     unsigned int port = MSH_STRING_TO_INT(portStr);
 
     socket_t clientSocket = msh_IPsocket_socket_create();
     struct sockaddr_in servAddr = msh_IPsocket_addr_in_create(INADDR_ANY, port);
-    msh_IPsocket_addr_in_setAddr(address, &servAddr);
+    msh_IPsocket_addr_in_setAddr(msh, address, &servAddr);
 
     int err = connect(clientSocket, (struct sockaddr*)&servAddr, sizeof(servAddr));
+    if (err < 0) { return msh_error(msh, "connect-IPsocket, internal: connect() failed"); }
 
     // return clientSocket
     char socketIDStr[intLen(clientSocket) + 1]; intToString(clientSocket, socketIDStr);
