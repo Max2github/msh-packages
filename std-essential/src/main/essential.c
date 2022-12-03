@@ -16,7 +16,7 @@ void msh_command_main_display(msh_info* msh) {
         for (int i = 0; i <= anzahlSpl; i++) {
             if (i % 2 /* == 1 */) { // each second is a reference - begins with 0
                 superstring tempS = s_init(withRef[i]);
-                MSH_PRINTF_NO_FLUSH(msh, "%s", (char*)msh_ref_get(msh, (index64)tempS));
+                MSH_PRINTF_NO_FLUSH(msh, "%s", (char*)msh_ref_get(msh, (indexP) tempS));
                 s_free(tempS);
                 continue;
             }
