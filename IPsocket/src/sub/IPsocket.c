@@ -35,7 +35,7 @@ struct sockaddr_in msh_IPsocket_addr_in_create(unsigned int address, unsigned sh
 }
 
 void msh_IPsocket_addr_in_setAddr(msh_info * msh, char * address, struct sockaddr_in * addr) {
-    #if OS_WINDOWS && CC_MINGW
+    #if OS_WINDOWS
         if (word_compare(address, "localhost") == 0) {
             word_copy(address, "127.0.0.1");
         }
