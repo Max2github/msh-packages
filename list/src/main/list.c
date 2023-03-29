@@ -4,7 +4,8 @@
 #include "../../../dependencies/std.h"
 #include "../../../include/list.h"
 
-#include "../../cparts/command_def.h" */
+// optional
+// #include "../../cparts/command_def.h" */
 
 #include "../../../../mshgit/dependencies/std.h"
 
@@ -12,8 +13,6 @@
 #include "../../../../mshgit/include/list.h"
 
 #include "../../../../mshgit/dependencies/extern.h"
-
-// #include "../../../../mshgit/src/cparts/command_def.h"
 
 void msh_command_main_delete_list(msh_info * msh);
 
@@ -29,12 +28,15 @@ void msh_command_main_add_list(msh_info * msh) {
     unsigned int index = *indexP - 48;
     char * type = wordArr[2];
     char * value = wordArr[3];
+
+    MSH_MUTEX_LOCK(MSH_LIST_MUTEX);
     list toMod = msh_getListByName(name);
     if (word_compare(indexP, "last") == 0) { index = list_node_len(toMod); }
     if (index < 0) { index = 0; }
-    // printf("index: %d\n", index);
 
     if (toMod == NULL) {
+        MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
+
         if (word_compare(type, "Char") == 0) {
             toMod = list_addFirst(toMod, Char, *value, End);
         } else if (word_compare(type, "Integer") == 0) {
@@ -49,8 +51,9 @@ void msh_command_main_add_list(msh_info * msh) {
             toMod = list_addFirst(toMod, List, msh_getListByName(value), End);
         }
 
-        LIST_SPEICHER = list_addFirst(LIST_SPEICHER, List, toMod, String, name, End);
-        list_free(toMod);
+        MSH_MUTEX_LOCK(MSH_LIST_MUTEX);
+        LIST_SPEICHER = list_addFirst(LIST_SPEICHER, List_pointer, toMod, String, name, End);
+        MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
     } else if (index == 0) {
         list toModBoss = msh_getListBossByName(name);
 
@@ -67,6 +70,8 @@ void msh_command_main_add_list(msh_info * msh) {
         } else if (word_compare(type, "List") == 0) {
             toModBoss->el = (unsigned long long) list_addFirst( (list) toModBoss->el, List, msh_getListByName(value), End);
         }
+
+        MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
     } else {
         if (word_compare(type, "Char") == 0) {
             list_addIndex(toMod, index, Char, *value, End);
@@ -81,6 +86,8 @@ void msh_command_main_add_list(msh_info * msh) {
         } else if (word_compare(type, "List") == 0) {
             list_addIndex(toMod, index, List, msh_getListByName(value), End);
         }
+
+        MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
     }
 
     freeWordArr(wordArr, Teile);
@@ -95,10 +102,12 @@ void msh_command_main_remove_list(msh_info * msh) {
     char * name = wordArr[0];
     char * type = wordArr[1];
     char * value = wordArr[2];
+
+    MSH_MUTEX_LOCK(MSH_LIST_MUTEX);
     list toMod = msh_getListByName(name);
     if (toMod == NULL) {
-        msh_error(msh, "");
-        printf("List \"%s\" not found!\n", name);
+        MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
+        msh_error(msh, "List \"%s\" not found!\n", name);
         freeWordArr(wordArr, Teile);
         return;
     }
@@ -109,9 +118,9 @@ void msh_command_main_remove_list(msh_info * msh) {
         else { index = atoi(value); }
         if (index == 0) {
             if (list_node_len(toMod) == 1) {
-                // word_copy(msh_Wert, name);
                 set_msh_Wert(msh, name);
                 msh_command_main_delete_list(msh);
+                MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
                 freeWordArr(wordArr, Teile);
                 return;
             }
@@ -128,11 +137,13 @@ void msh_command_main_remove_list(msh_info * msh) {
     } else if (word_compare(type, "Type&Value") == 0) {
         // needs list_select_remove
     } else {
-        printf("Error: Option \"%s\" not found! Please only enter \"Index\", \"Type\" or \"Type&Value\".\n", type);
+        msh_error(msh, "Error: Option \"%s\" not found! Please only enter \"Index\", \"Type\" or \"Type&Value\".\n", type);
     }
+
+    MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
     freeWordArr(wordArr, Teile);
 }
-void msh_command_main_modify_list() {
+void msh_command_main_modify_list(msh_info * msh) {
     char ** wordArr;
     int Teile = split(msh_Wert, ":", &wordArr);
     if (Teile != 3) {
@@ -144,9 +155,12 @@ void msh_command_main_modify_list() {
     unsigned int index = *indexP - 48;
     char * type = wordArr[2];
     char * value = wordArr[3];
+
+    MSH_MUTEX_LOCK(MSH_LIST_MUTEX);
     list toMod = msh_getListByName(name);
     if (toMod == NULL) {
-        printf("Error: List \"%s\" not found!\n", name);
+        MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
+        msh_error(msh, "List \"%s\" not found!\n", name);
         freeWordArr(wordArr, Teile);
         return;
     }
@@ -174,7 +188,7 @@ void msh_command_main_modify_list() {
             char newValue[word_len((const char *) toMod->el) + word_len(value)];
             word_copy(newValue, value);
             replaceS(newValue, "Same", (const char *) toMod->el);
-            toMod->el = (unsigned long long) realloc((void *) toMod->el, sizeof(char) * (word_len(newValue) + 1));
+            toMod->el = (unsigned long long) MSH_REALLOC((void *) toMod->el, sizeof(char) * (word_len(newValue) + 1));
             word_copy((char *) toMod->el, newValue);
             break;
         }
@@ -220,16 +234,23 @@ void msh_command_main_modify_list() {
         }
         default: break;
     }
+
+    MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
     freeWordArr(wordArr, Teile);
 }
-void msh_command_main_print_list() {
-    list_print(msh_getListByName(msh_Wert), 0);
+void msh_command_main_print_list(msh_info * msh) {
+    MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
+    MSH_MUTEX_LOCK(MSH_PRINT_MUTEX);
+    list_print(msh_getListByName(msh_Wert), (format_options) FORMAT_OPTIONS_DEFAULT_HUMAN);
+    MSH_MUTEX_UNLOCK(MSH_PRINT_MUTEX);
+    MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
 }
 void msh_command_main_delete_list(msh_info * msh) {
     if (LIST_SPEICHER == NULL) {
         msh_error(msh, "Error: There are no lists!\n");
         return;
     }
+    MSH_MUTEX_LOCK(MSH_LIST_MUTEX);
     if ( word_compare((const char *) ((list) LIST_SPEICHER->el)->next->el , msh_Wert) == 0 ) {
         list after = LIST_SPEICHER->next;
         list_element_free(LIST_SPEICHER);
@@ -237,7 +258,7 @@ void msh_command_main_delete_list(msh_info * msh) {
     } else {
         list before = msh_getBeforeNodeByName(msh_Wert);
         if (before == NULL) {
-            printf("Error: List \"%s\" not found!\n", msh_Wert);
+            msh_error(msh, "Error: List \"%s\" not found!\n", msh_Wert);
             return;
         }
         list toDel = before->next;
@@ -245,15 +266,20 @@ void msh_command_main_delete_list(msh_info * msh) {
         list_free(toDel);
         before->next = after;
     }
+    MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
 }
 void msh_command_main_print_list_SPEICHER(msh_info * msh) {
     if (LIST_SPEICHER == NULL) {
         msh_error(msh, "There are no lists!\n");
         return;
     }
+    MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
+    MSH_MUTEX_LOCK(MSH_PRINT_MUTEX);
     while (LIST_SPEICHER != NULL) {
-        printf("%s ", (char *) ((list) LIST_SPEICHER->el)->next->el);
+        MSH_PRINTF(msh, "%s ", (char *) ((list) LIST_SPEICHER->el)->next->el);
         LIST_SPEICHER = LIST_SPEICHER->next;
     }
-    putchar('\n');
+    MSH_PUTCHAR(msh, '\n');
+    MSH_MUTEX_UNLOCK(MSH_PRINT_MUTEX);
+    MSH_MUTEX_UNLOCK(MSH_LIST_MUTEX);
 }
