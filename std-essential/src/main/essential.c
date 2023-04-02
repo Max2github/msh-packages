@@ -8,24 +8,25 @@
 void msh_command_main_display(msh_info* msh) {
     char* wert = get_msh_Wert(msh);
 
-    if (find(msh_Wert, "&/ref//")) {
+    if (find(msh_Wert, MSH_REF_STRING_SEPARATOR)) {
         MSH_MUTEX_LOCK(MSH_PRINT_MUTEX);
         MSH_PRINTF_NO_FLUSH(msh, ">> ");
-        char** withRef;
-        int anzahlSpl = split(wert, "&/ref//", &withRef);
-        for (int i = 0; i <= anzahlSpl; i++) {
+
+        word_picker_array arr = msh_ref_string_split(wert);
+        for (int i = 0; i < arr.written; i++) {
+            word_picker w = WORD_PICKER_ARRAY_GET(arr, i);
             if (i % 2 /* == 1 */) { // each second is a reference - begins with 0
-                superstring tempS = s_init(withRef[i]);
-                MSH_PRINTF_NO_FLUSH(msh, "%s", (char*)msh_ref_get(msh, (indexP) tempS));
-                s_free(tempS);
+                index32 ref_id = msh_ref_id_from_string(w.begin, word_picker_len(w));
+                MSH_PRINTF_NO_FLUSH(msh, "%s", msh_ref_get_data_as_string(msh, ref_id));
                 continue;
             }
-            MSH_PRINTF_NO_FLUSH(msh, "%s", withRef[i]);
+            while (w.begin != w.end) {
+                MSH_PUTCHAR_NO_FLUSH(msh, *(w.begin));
+            }
         }
         MSH_PRINTF_NO_FLUSH(msh, "\n");
         msh_flush(msh);
         MSH_MUTEX_UNLOCK(MSH_PRINT_MUTEX);
-        freeWordArr(withRef, anzahlSpl);
         return;
     }
 
