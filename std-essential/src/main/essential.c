@@ -17,10 +17,11 @@ void msh_command_main_display(msh_info* msh) {
             word_picker w = WORD_PICKER_ARRAY_GET(arr, i);
             if (i % 2 /* == 1 */) { // each second is a reference - begins with 0
                 index32 ref_id = msh_ref_id_from_string(w.begin, word_picker_len(w));
-                MSH_PRINTF_NO_FLUSH(msh, "%s", msh_ref_get_data_as_string(msh, ref_id));
+                word_picker data = msh_ref_get_data_as_string(msh, ref_id);
+                MSH_PRINTF_NO_FLUSH(msh, "%.*s", word_picker_len(data), data.begin);
                 continue;
             }
-            while (w.begin != w.end) {
+            while (w.begin < w.end) {
                 MSH_PUTCHAR_NO_FLUSH(msh, *(w.begin));
             }
         }
